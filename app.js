@@ -260,3 +260,5 @@ const App = (function (){
 })(ItemCtrl, UICtrl, StorageCtrl)
 
 App.init()
+
+//asd
