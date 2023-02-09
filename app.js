@@ -68,7 +68,7 @@ const ItemCtrl = (function (){
                     item.calories = parseInt(calories)
                     updated = item
                 }
-            });
+            })
             return updated
         },
         deleteItem: function(deletedItem){
@@ -77,6 +77,9 @@ const ItemCtrl = (function (){
                     data.items.splice(index, 1)
                 }
             })
+        },
+        clearItem: function (clearedItem) {
+            data.items = []
         }
     }
 })();
@@ -89,7 +92,9 @@ const UICtrl = (function (){
         itemCaloriesInput: '#item-calories',
         addBtn: '.add-btn',
         updateBtn: '.update-btn',
-        deleteBtn: '.delete-btn'
+        deleteBtn: '.delete-btn',
+        clearBtn: '.clear-btn',
+        backBtn: '.back-btn'
     }
 
     return{
@@ -103,7 +108,7 @@ const UICtrl = (function (){
                          </a>
                          </li>`
             })
-            document.querySelector(UISelectors.itemList).innerHTML = html
+            document.querySelector('ul').innerHTML = html
         },
         showTotalCalories: function (totalCalories){
             document.querySelector('.total-calories').textContent = totalCalories
@@ -138,11 +143,13 @@ const UICtrl = (function (){
             document.querySelector(UISelectors.addBtn).style.display = 'none'
             document.querySelector(UISelectors.updateBtn).style.display = 'inline'
             document.querySelector(UISelectors.deleteBtn).style.display = 'inline'
+            document.querySelector(UISelectors.backBtn).style.display = 'inline'
         },
         clearEditState: function () {
             document.querySelector(UISelectors.addBtn).style.display = 'inline'
             document.querySelector(UISelectors.updateBtn).style.display = 'none'
             document.querySelector(UISelectors.deleteBtn).style.display = 'none'
+            document.querySelector(UISelectors.backBtn).style.display = 'none'
         },
         addItemToForm: function () {
             document.querySelector(UISelectors.itemNameInput).value = ItemCtrl.getCurrentItem().name
@@ -162,8 +169,13 @@ const UICtrl = (function (){
                 }
             })
         },
-        deleteItem: function(item) {
+        deleteItem: function (item) {
             document.querySelector(`#item-${item.id}`).remove()
+        },
+        clearItem: function (item) {
+            document.querySelectorAll(UISelectors.listOfItems).forEach(function (item) {
+                item.remove()
+            })
         }
     }
 })()
@@ -216,6 +228,9 @@ const StorageCtrl = (function (){
                 }
             })
             localStorage.setItem('items', JSON.stringify(items))
+        },
+        clearAllItems: function(){
+            localStorage.removeItem('items')
         }
     }
 })()
@@ -279,6 +294,18 @@ const App = (function (){
         UICtrl.clearEditState()
         event.preventDefault()
     }
+    const itemClearSubmit = function (event) {
+        const clearedItem = ItemCtrl.getCurrentItem()
+        ItemCtrl.clearItem(clearedItem)
+        UICtrl.clearItem(clearedItem)
+        StorageCtrl.clearAllItems()
+        const totalCalories = ItemCtrl.getTotalCalories()
+        UICtrl.showTotalCalories(totalCalories)
+        UICtrl.clearInput()
+        UICtrl.clearEditState()
+        event.preventDefault()
+    }
+
 
     const loadEventListeners = function (){
         const UISelectors = UICtrl.getSelectors()
@@ -287,13 +314,16 @@ const App = (function (){
         document.querySelector(UISelectors.addBtn).addEventListener('click', itemAddSubmit)
         document.querySelector(UISelectors.itemList).addEventListener('click', itemEditSubmit)
         document.querySelector(UISelectors.updateBtn).addEventListener('click', itemUpdateSubmit)
-        document.querySelector(UISelectors.deleteBtn).addEventListener('click',
-            itemDeleteSubmit)
-
+        document.querySelector(UISelectors.deleteBtn).addEventListener('click', itemDeleteSubmit)
+        document.querySelector(UISelectors.clearBtn).addEventListener('click', itemClearSubmit)
+        document.querySelector(UISelectors.backBtn).addEventListener('click', function(e) {
+            UICtrl.clearEditState()
+            e.preventDefault()
+        })
     }
 
     return{
-        init: function (){
+        init: function () {
             loadEventListeners()
         }
     }
